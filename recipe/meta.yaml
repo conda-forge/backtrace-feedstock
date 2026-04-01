@@ -1,33 +1,38 @@
-{% set version = "20241216" %}
+{% set version = "20251106" %}
 
 package:
     name: backtrace
     version: {{ version }}
 
 source:
-    url: https://github.com/ianlancetaylor/libbacktrace/archive/1db85642e3fca189cf4e076f840a45d6934b2456.zip
-    sha256: 9211bb87add7ccdca625ac75dbd4e9f5726f1e99da54c4f1583d0fa21e380c9b
+    url: https://github.com/ianlancetaylor/libbacktrace/archive/b9e40069c0b47a722286b94eb5231f7f05c08713.zip
+    sha256: d2162ff65da45db62e0a1d5fa7662d04b72247cc0ccedad8257cf00e801bb15e
 
 build:
     number: 0
     run_exports:
         - {{ pin_subpackage('backtrace', max_pin='x.x') }}
-    skip: true  # [win]
 
 requirements:
     build:
-        - {{ compiler('c') }}
+        - {{ compiler('m2w64_c') }}  # [win]
+        - {{ compiler('c') }}        # [not win]
         - {{ stdlib("c") }}
-        - make       # [unix]
+        - make                       # [unix]
+        - m2-make                    # [win]
+        - m2-base                    # [win]
     host:
         - zlib
 
 test:
     commands:
-        - test -f ${PREFIX}/lib/libbacktrace.a
+        - test -f ${PREFIX}/lib/libbacktrace.a      # [unix]
         - test -f ${PREFIX}/lib/libbacktrace.so     # [linux]
         - test -f ${PREFIX}/lib/libbacktrace.dylib  # [osx]
-        - test -f ${PREFIX}/include/backtrace.h
+        - test -f ${PREFIX}/include/backtrace.h     # [unix]
+        - if not exist %LIBRARY_PREFIX%/lib/libbacktrace.a exit 1   # [win]
+        - if not exist %LIBRARY_PREFIX%/lib/libbacktrace.dll.a exit 1  # [win]
+        - if not exist %LIBRARY_PREFIX%/include/backtrace.h exit 1  # [win]
 
 about:
     home: https://github.com/ianlancetaylor/libbacktrace
